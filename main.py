@@ -5,7 +5,6 @@ import csv
 from functions import body_text, action_csv, clear_screen
 
 
-### TODO: Typewriter-like animation for passwords showing up on screen
 
 
 
@@ -46,7 +45,7 @@ def play(name):
         clear_screen()
 
         pass_opt = action_csv(1,name,"pass_list.csv","pass")
-        space = f"Hello, Ainslie\nWong"
+        space = f"Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']}"
         #Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']} 
         body_text(name, space, 3)
         
