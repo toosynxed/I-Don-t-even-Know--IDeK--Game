@@ -5,14 +5,15 @@ import csv
 import sys
 import tty
 import termios
+#from main import timing
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 def crash():
     time.sleep(5)
-    os.system("shutdown /s /t 0" if os.name == 'nt' else "sudo shutdown now")
+    #os.system("shutdown /s /t 0" if os.name == 'nt' else "sudo shutdown now")
 
-def body_text(name, space, type):
+def body_text(name, space, type,timing=0.5):
     temp_space = ''
     Up_text = f"----------- Welcome, {name} -----------\n{space}\n---------------------{len(name)*'-'}------------"
     try:
@@ -36,11 +37,15 @@ def body_text(name, space, type):
         elif type == 4:
             iteration = 1
             for i in range(0,15):
-                space = f"Loading{iteration * '.'}"
-                iteration = iteration + 1
-                time.sleep(timing)
+                temp_space = f"Please Wait While We Load Your Profile{iteration * '.'}"
+                Up_text = f"----------- Welcome, {name} -----------\n{temp_space}\n---------------------{len(name)*'-'}------------"
+
+                
                 if iteration > 3:
                     iteration = 0
+                else:
+                    iteration = iteration + 1
+                    time.sleep(timing)
 
                 clear_screen()
                 print(Up_text)
@@ -159,3 +164,54 @@ def mask_input(prompt="Enter Password: "):
     
     print()
     return password
+
+
+def login_check(name,name_check,timing):
+    if not name:
+        print("You must enter a name!")
+        return TypeError
+    elif name_check == 1:
+        #Needs to do the enter password to "Login" method/check 
+        space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
+        basic_details = action_csv(1,name,"user_pass.csv","get")
+        name = basic_details["username"]
+        body_text(name,space,3)
+        password_input = mask_input()
+        if password_input == basic_details["pass"]:
+
+            stage = "Logged-In"
+
+    else:
+        #body_text(name, f"Loading{iteration * '.'}", 4, timing)
+        iteration = 1
+        for i in range(0,15):
+            
+            space = f"Loading{iteration * '.'}"
+            iteration = iteration + 1
+            time.sleep(timing)
+            if iteration > 3:
+                iteration = 0
+
+            clear_screen()
+            body_text(name, space, 2)
+        for i in range(0,4):
+            clear_screen()
+            if i % 2 == 0:
+                space = "Loaded"
+                body_text(name, space, 2)
+                time.sleep(1)
+            else:
+                
+                space = ''
+                body_text(name, space, 2)
+                time.sleep(1)
+        time.sleep(1)
+        clear_screen()
+
+
+def call_password_select(name):
+    pass_opt = action_csv(1,name,"pass_list.csv","pass")
+    space = f"Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']}"
+    #Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']} 
+    body_text(name, space, 3)
+    return pass_opt
