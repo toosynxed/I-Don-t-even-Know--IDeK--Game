@@ -2,9 +2,15 @@ import random
 import os
 import time
 import csv
+import sys
+import tty
+import termios
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
+def crash():
+    time.sleep(5)
+    os.system("shutdown /s /t 0" if os.name == 'nt' else "sudo shutdown now")
 
 def body_text(name, space, type):
     temp_space = ''
@@ -49,13 +55,17 @@ def body_text(name, space, type):
                     space = ''
                     print(Up_text)
                     time.sleep(1)
+        elif type == 5:
+            
+            Up_text = f"----------- Welcome, {name} -----------\n{temp_space}\n---------------------{len(name)*'-'}------------"
 
+            print(Up_text)
     except:
         print("Type not valid")
 
 
 
-def action_csv(input, name, file_name, type):
+def action_csv(input, name, file_name, type, input2=None):
     random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
@@ -84,12 +94,68 @@ def action_csv(input, name, file_name, type):
 
 
             return pass_opt
+        
         elif type == "set":
             data = []
             filename = file_name
-            with open(filename, mode="w", newline="", encoding="utf-8") as f:
-                data.append({"name": name, "pass": input})
-                writer = csv.DictWriter(f, fieldnames=["name", "pass"])
-                writer.writeheader()
+            with open(filename, mode="a", newline="", encoding="utf-8") as f:
+                data.append({"username": name, "pass_id": input2, "pass": input})
+                writer = csv.DictWriter(f, fieldnames=["username", "pass_id", "pass"])
+                #writer.writeheader()
                 writer.writerows(data)
+
+        elif type == "check":
+            data = []
+            filename = file_name
+            with open(filename, mode="r", newline="", encoding="utf-8") as f:
+                exist = 0
+                data_list = list(csv.DictReader(f))
         
+                total_rows = len(data_list)
+
+                for row in data_list:
+                    if row["username"].lower() == name.lower():
+                        return 1
+                return 0
+                
+        elif type == "get":
+            data = []
+            filename = file_name
+            with open(filename, mode="r", newline="", encoding="utf-8") as f:
+                data_list = (csv.DictReader(f))
+                for row in data_list:
+                            # Check if the field matches the target value
+                    if row["username"].lower() == name.lower():
+                        print("\033[3mTerminal: Found User!\033[0m")
+                        return row
+
+            return None  
+
+
+
+def mask_input(prompt="Enter Password: "):
+    print(prompt, end="", flush=True)
+    password = ""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    
+    try:
+        tty.setraw(sys.stdin.fileno())
+        while True:
+            char = sys.stdin.read(1)
+            if char in ('\r', '\n'): # Enter key
+                break
+            elif char == '\x7f': # Backspace key
+                if len(password) > 0:
+                    password = password[:-1]
+                    sys.stdout.write('\b \b')
+                    sys.stdout.flush()
+            else:
+                password += char
+                sys.stdout.write('#')
+                sys.stdout.flush()
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+    
+    print()
+    return password
