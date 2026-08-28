@@ -51,20 +51,20 @@ def open_achievements(name,balance,networth):
     pass
 
 def open_leaderboard(name,balance,networth):
-    data = []
+    #data = []           NOTE: REMOVE
     leaderboard = []
     filename = "user_wallets.csv"
     with open(filename, mode="r", newline="", encoding="utf-8") as f:
         
         data_list = list(csv.DictReader(f))
 
-        total_rows = len(data_list)
-        integer = -1
+        #total_rows = len(data_list)           NOTE: REMOVE
+        #integer = -1           NOTE: REMOVE
         for row in data_list:
            
             temp_usr = []
             temp_usr.append(row["username"])
-            temp_usr.append(row["cash"])
+            temp_usr.append(float(row["cash"]))
             #print(temp_usr)
             #leaderboard.append(temp_usr)
             #print(leaderboard, "elade")
@@ -74,20 +74,20 @@ def open_leaderboard(name,balance,networth):
             #    leaderboard.append(temp_usr)
             
             #for entry in range(0,total_rows):
-            print("in for")
+            #print("in for")           NOTE: REMOVE
             #temp_usr_compare = leaderboard[integer]
             
             if len(leaderboard) == 0:
-                print(len(leaderboard), "leaderboard length")
+                #print(len(leaderboard), "leaderboard length")           NOTE: REMOVE
                 leaderboard.append(temp_usr)
-                print(f"Here is current LB: {leaderboard}, integer: {integer} 1")
+                #print(f"Here is current LB: {leaderboard}, integer: {integer} 1")           NOTE: REMOVE
 
 
 
             elif len(leaderboard) > 0:
-                print(f"Here is current LB: {leaderboard}, integer: {integer} 2")
+                #print(f"Here is current LB: {leaderboard}, integer: {integer} 2")           NOTE: REMOVE
 
-                temp_usr_compare = leaderboard[integer - 1]
+                #temp_usr_compare = leaderboard[integer - 1]           NOTE: REMOVE
                 print(f"Here is current temp_usr_compare: {temp_usr_compare}")
                 if temp_usr[1] >= temp_usr_compare[1]:
                     #print("in if", leaderboard)
@@ -112,7 +112,7 @@ def open_leaderboard(name,balance,networth):
                             print(f"added {temp_usr} as lesser value compared to {temp_usr_compare}")
                         
 
-            integer = integer + 1
+            #integer = integer + 1           NOTE: REMOVE
 
             #except:
              #   print("error")
