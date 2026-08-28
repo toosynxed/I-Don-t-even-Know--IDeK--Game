@@ -183,8 +183,12 @@ def login_check(name,name_check,timing):
         body_text(name,space,3)
         password_input = mask_input()
         if password_input == basic_details["pass"]:
-
+            print("yes")
             stage = "Logged-In"
+            return stage, name
+        else:
+            stage = "Not-Logged-In"
+            return stage
 
     else:
         #body_text(name, f"Loading{iteration * '.'}", 4, timing)
