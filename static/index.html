@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>IDeK</title>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a2332;
+    --edge: #3a4a5c;
+    --text: #e8eef5;
+    --muted: #8b9bb0;
+    --accent: #5eb1ef;
+    --up: #3dd68c;
+    --down: #f07178;
+    --warn: #ffcc66;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: radial-gradient(1200px 600px at 20% -10%, #1a2a3a, var(--bg));
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px; }
+  h1 { color: var(--accent); margin: 0 0 8px; letter-spacing: 0.04em; }
+  .sub { color: var(--muted); margin-bottom: 20px; }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .term {
+    white-space: pre-wrap;
+    line-height: 1.45;
+    min-height: 120px;
+    background: #0a0e14;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 14px;
+    color: var(--up);
+  }
+  label { display: block; color: var(--muted); margin: 10px 0 4px; font-size: 12px; }
+  input, button {
+    font: inherit;
+    border-radius: 8px;
+    border: 1px solid var(--edge);
+    padding: 10px 12px;
+  }
+  input {
+    width: 100%;
+    background: #0a0e14;
+    color: var(--text);
+  }
+  button {
+    cursor: pointer;
+    background: var(--accent);
+    color: #071018;
+    font-weight: 700;
+    border: none;
+  }
+  button.secondary { background: #2a3a4f; color: var(--text); }
+  button.danger { background: #d64545; color: #fff; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+  .row > * { flex: 1; min-width: 120px; }
+  .hub-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+  .hidden { display: none !important; }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
+  .col h2, .card h2 { margin: 0 0 8px; font-size: 14px; color: var(--accent); }
+  canvas.chart { width: 100%; height: 140px; background: #0a0e14; border-radius: 6px; border: 1px solid var(--edge); }
+  .price { font-size: 28px; font-weight: 700; margin: 10px 0 4px; }
+  .chg.up { color: var(--up); } .chg.down { color: var(--down); }
+  .stats { font-size: 12px; color: var(--muted); }
+  .stats div { display: flex; justify-content: space-between; margin: 3px 0; }
+  .stats b { color: var(--text); font-weight: 600; }
+  .event { color: var(--warn); min-height: 1.2em; margin: 8px 0; font-size: 12px; }
+  .holdings {
+    list-style: none; padding: 0; margin: 8px 0 0;
+    max-height: 130px; overflow: auto;
+    border: 1px solid var(--edge); border-radius: 6px;
+  }
+  .holdings li {
+    padding: 8px 10px; border-bottom: 1px solid #243244; cursor: pointer; font-size: 12px;
+  }
+  .holdings li:last-child { border-bottom: none; }
+  .holdings li.selected { background: #1f6feb; color: white; }
+  .holdings li.empty { color: var(--muted); cursor: default; }
+  .qty-row {
+    display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap;
+  }
+  .qty-row label { margin: 0; white-space: nowrap; }
+  .qty-row input { width: 72px; padding: 8px; text-align: center; }
+  .actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .actions-row button { flex: 1; min-width: 90px; }
+  .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .msg { color: var(--warn); min-height: 1.2em; margin-top: 8px; }
+  table.lb { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.lb th, table.lb td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--edge); }
+  table.lb th { color: var(--muted); font-weight: 600; }
+  table.lb tr.me td { color: var(--accent); }
+  .ach-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+  .ach-card {
+    background: #0a0e14;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 14px;
+    opacity: 0.55;
+  }
+  .ach-card.unlocked {
+    opacity: 1;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(94, 177, 239, 0.15);
+  }
+  .ach-card .ach-icon { font-size: 28px; margin-bottom: 8px; }
+  .ach-card h3 { margin: 0 0 6px; font-size: 14px; color: var(--text); }
+  .ach-card p { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .ach-card .ach-date { margin-top: 10px; font-size: 11px; color: var(--accent); }
+  .ach-summary { color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+  .ach-toast-wrap {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+    pointer-events: none;
+  }
+  .ach-toast {
+    background: #1a2332;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    min-width: 240px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    animation: ach-slide-in 0.25s ease-out;
+  }
+  .ach-toast b { display: block; color: var(--accent); margin-bottom: 4px; }
+  .ach-toast span { font-size: 12px; color: var(--muted); }
+  @keyframes ach-slide-in {
+    from { transform: translateY(12px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>IDeK</h1>
+  <div class="sub">I Don't Even Know — Firebase Auth + market + leaderboard</div>
+
+  <section id="login" class="card">
+    <div id="term" class="term">IDeK
+Firebase accounts enabled.
+
+Enter a username to log in or create an account.
+(Your password is still one of the 3 game-style options when creating.)</div>
+
+    <div id="startForm">
+      <label>Username</label>
+      <input id="username" autocomplete="username" />
+      <label>Speed (1–10) — animation feel</label>
+      <input id="speed" type="number" min="1" max="10" step="1" value="5" />
+      <div class="row">
+        <button type="button" id="loginBtn" class="secondary">Log In</button>
+        <button type="button" id="createBtn">Create Account</button>
+      </div>
+    </div>
+
+    <div id="passwordBox" class="hidden">
+      <label id="passwordLabel">Password</label>
+      <input id="password" type="password" class="hidden" />
+      <div id="passChoices" class="hidden"></div>
+      <div class="row">
+        <button type="button" id="passwordBtn" class="hidden">Submit Password</button>
+        <button type="button" id="backStart" class="secondary">Back</button>
+      </div>
+    </div>
+    <div class="msg" id="loginMsg"></div>
+  </section>
+
+  <section id="hub" class="card hidden">
+    <div class="topbar">
+      <div>
+        <h2 id="hubTitle" style="margin:0;color:var(--accent)">Welcome</h2>
+        <div class="sub" style="margin:6px 0 0">Logged in with Firebase. Choose a destination.</div>
+      </div>
+      <button type="button" id="logoutBtn" class="secondary" style="flex:0">Log Out</button>
+    </div>
+    <div class="hub-grid" style="margin-top:14px">
+      <button type="button" data-go="market">Stock Market</button>
+      <button type="button" data-go="leaderboard">Leaderboard</button>
+      <button type="button" data-go="achievements">Achievements</button>
+      <button type="button" class="secondary" data-placeholder="Inventory">Inventory</button>
+      <button type="button" class="secondary" data-placeholder="Missions">Missions</button>
+      <button type="button" class="secondary" data-placeholder="Settings">Settings</button>
+      <button type="button" id="logoutMenuBtn" class="danger">Log Out</button>
+    </div>
+  </section>
+
+  <section id="leaderboard" class="card hidden">
+    <div class="topbar">
+      <h2 style="margin:0;color:var(--accent)">Leaderboard</h2>
+      <button type="button" id="backHubFromLb" class="secondary">Back to Hub</button>
+    </div>
+    <div class="sub">Ranked by net worth (cash + portfolio). Updates when you play the market.</div>
+    <div class="row" style="margin-bottom:12px">
+      <button type="button" id="refreshLb">Refresh</button>
+    </div>
+    <table class="lb">
+      <thead><tr><th>#</th><th>Player</th><th>Net Worth</th><th>Cash</th></tr></thead>
+      <tbody id="lbBody"><tr><td colspan="4">Loading…</td></tr></tbody>
+    </table>
+    <div class="msg" id="lbMsg"></div>
+  </section>
+
+  <section id="achievements" class="card hidden">
+    <div class="topbar">
+      <h2 style="margin:0;color:var(--accent)">Achievements</h2>
+      <button type="button" id="backHubFromAch" class="secondary">Back to Hub</button>
+    </div>
+    <div class="sub">Market milestones — unlock them by trading, surviving events, and growing your net worth.</div>
+    <div class="ach-summary" id="achSummary">Loading…</div>
+    <div class="ach-grid" id="achGrid"></div>
+    <div class="msg" id="achMsg"></div>
+  </section>
+
+  <section id="market" class="card hidden">
+    <div class="topbar">
+      <div>
+        <h2 style="margin:0;color:var(--accent)">IDeK Market</h2>
+        <div class="sub" id="marketStatus" style="margin:6px 0 0">Ready</div>
+      </div>
+      <div style="text-align:right">
+        <div id="cashLine">Cash: $0.00</div>
+        <div id="netLine" class="sub" style="margin:0">Net worth: $0.00</div>
+      </div>
+    </div>
+    <div class="row" style="margin:14px 0">
+      <button type="button" id="tickBtn">Tick Now</button>
+      <button type="button" id="autoBtn" class="secondary">Auto: ON (5s)</button>
+      <button type="button" id="backHub" class="secondary">Back to Hub</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="msg" id="marketMsg"></div>
+  </section>
+</div>
+<div class="ach-toast-wrap" id="achToastWrap"></div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyATo3KLpOuMCt81NRdhI8kQ4txByvtxIMg",
+  authDomain: "idek-game.firebaseapp.com",
+  projectId: "idek-game",
+  storageBucket: "idek-game.firebasestorage.app",
+  messagingSenderId: "240014751379",
+  appId: "1:240014751379:web:77b96cad1f7a7d0527bf66",
+  measurementId: "G-J34LP9X18S"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const state = {
+  username: '',
+  uid: null,
+  timing: 0.5,
+  stage: null,
+  mode: null, // 'login' | 'create'
+  passOpts: [],
+  auto: true,
+  autoTimer: null,
+  selected: {1: null, 2: null, 3: null},
+  achievements: {},
+  achievementStats: { tickCount: 0 },
+};
+
+const ACHIEVEMENTS = [
+  { id: 'first_buy', icon: '📈', title: 'First Trade', desc: 'Buy your first stock lot.' },
+  { id: 'first_sell', icon: '💵', title: 'Cash Out', desc: 'Sell your first lot.' },
+  { id: 'diversified', icon: '🎯', title: 'Diversifier', desc: 'Hold lots in all 3 risk levels at once.' },
+  { id: 'max_lots', icon: '📦', title: 'Max Position', desc: 'Fill all 5 lot slots on one risk level.' },
+  { id: 'net_750', icon: '💰', title: 'Growing Portfolio', desc: 'Reach $750 net worth.' },
+  { id: 'net_1000', icon: '🏦', title: 'Four Figures', desc: 'Reach $1,000 net worth.' },
+  { id: 'net_2000', icon: '👑', title: 'Market Mogul', desc: 'Reach $2,000 net worth.' },
+  { id: 'profit_50', icon: '✨', title: 'Nice Flip', desc: 'Sell a lot for $50+ profit.' },
+  { id: 'sell_all', icon: '🧹', title: 'Clean Sweep', desc: 'Use Sell All Lots on a risk level.' },
+  { id: 'witness_crash', icon: '💥', title: 'Black Monday', desc: 'Hold high-risk stock during a crash event.' },
+  { id: 'witness_break', icon: '🚀', title: 'To The Moon', desc: 'Hold high-risk stock during a break event.' },
+  { id: 'ticks_25', icon: '⏱️', title: 'Day Trader', desc: 'Watch 25 market ticks.' },
+];
+
+const $ = (id) => document.getElementById(id);
+
+function show(id) {
+  ['login', 'hub', 'market', 'leaderboard', 'achievements'].forEach(s => $(s).classList.toggle('hidden', s !== id));
+}
+
+async function loadAchievementProgress() {
+  if (!state.uid) {
+    state.achievements = {};
+    state.achievementStats = { tickCount: 0 };
+    return;
+  }
+  try {
+    const doc = await db.collection('users').doc(state.uid).get();
+    const data = doc.data() || {};
+    state.achievements = data.achievements || {};
+    state.achievementStats = data.achievementStats || { tickCount: 0 };
+  } catch (err) {
+    console.warn('achievement load failed', err);
+  }
+}
+
+async function saveAchievementProgress() {
+  if (!state.uid) return;
+  await db.collection('users').doc(state.uid).set({
+    achievements: state.achievements,
+    achievementStats: state.achievementStats,
+  }, { merge: true });
+}
+
+function achievementById(id) {
+  return ACHIEVEMENTS.find(a => a.id === id);
+}
+
+function formatAchievementDate(value) {
+  if (!value) return '';
+  const date = value.toDate ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return `Unlocked ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function showAchievementToasts(ids) {
+  const wrap = $('achToastWrap');
+  ids.forEach(id => {
+    const ach = achievementById(id);
+    if (!ach) return;
+    const toast = document.createElement('div');
+    toast.className = 'ach-toast';
+    toast.innerHTML = `<b>${ach.icon} Achievement unlocked: ${escapeHtml(ach.title)}</b><span>${escapeHtml(ach.desc)}</span>`;
+    wrap.appendChild(toast);
+    setTimeout(() => toast.remove(), 4500);
+  });
+}
+
+function unlockAchievement(id) {
+  if (state.achievements[id]) return false;
+  state.achievements[id] = firebase.firestore.FieldValue.serverTimestamp();
+  return true;
+}
+
+async function checkMarketAchievements(marketData, { action, lastSellPl, didSellAll } = {}) {
+  if (!state.uid || !marketData) return [];
+  const newly = [];
+
+  const totalLots = (marketData.columns || []).reduce((sum, col) => sum + col.holding_count, 0);
+  const hasAllThree = (marketData.columns || []).every(col => col.holding_count > 0);
+  const hasMaxLots = (marketData.columns || []).some(col => col.holding_count >= marketData.max_holdings);
+  const highCol = (marketData.columns || []).find(col => col.risk_id === 3);
+
+  const tryUnlock = (id) => {
+    if (unlockAchievement(id)) newly.push(id);
+  };
+
+  if (totalLots > 0) tryUnlock('first_buy');
+  if (action === 'sell') tryUnlock('first_sell');
+  if (hasAllThree) tryUnlock('diversified');
+  if (hasMaxLots) tryUnlock('max_lots');
+  if (marketData.net_worth >= 750) tryUnlock('net_750');
+  if (marketData.net_worth >= 1000) tryUnlock('net_1000');
+  if (marketData.net_worth >= 2000) tryUnlock('net_2000');
+  if (lastSellPl >= 50) tryUnlock('profit_50');
+  if (didSellAll) tryUnlock('sell_all');
+  if (highCol && highCol.event === 'crash' && highCol.holding_count > 0) tryUnlock('witness_crash');
+  if (highCol && highCol.event === 'break' && highCol.holding_count > 0) tryUnlock('witness_break');
+  if (action === 'tick') {
+    state.achievementStats.tickCount = Number(state.achievementStats.tickCount || 0) + 1;
+  }
+  if (state.achievementStats.tickCount >= 25) tryUnlock('ticks_25');
+
+  if (newly.length || action === 'tick') {
+    await saveAchievementProgress();
+  }
+  if (newly.length) showAchievementToasts(newly);
+  updateAchievementsHubLabel();
+  return newly;
+}
+
+function updateAchievementsHubLabel() {
+  const btn = document.querySelector('[data-go="achievements"]');
+  if (!btn) return;
+  const unlocked = ACHIEVEMENTS.filter(a => state.achievements[a.id]).length;
+  btn.textContent = unlocked ? `Achievements (${unlocked}/${ACHIEVEMENTS.length})` : 'Achievements';
+}
+
+async function loadAchievementsView() {
+  $('achMsg').textContent = '';
+  await loadAchievementProgress();
+  const unlockedCount = ACHIEVEMENTS.filter(a => state.achievements[a.id]).length;
+  $('achSummary').textContent = `${unlockedCount} of ${ACHIEVEMENTS.length} unlocked`;
+
+  const cards = ACHIEVEMENTS.map(ach => {
+    const unlocked = !!state.achievements[ach.id];
+    const date = unlocked ? formatAchievementDate(state.achievements[ach.id]) : 'Locked';
+    return `
+      <article class="ach-card${unlocked ? ' unlocked' : ''}">
+        <div class="ach-icon">${ach.icon}</div>
+        <h3>${escapeHtml(ach.title)}</h3>
+        <p>${escapeHtml(ach.desc)}</p>
+        <div class="ach-date">${escapeHtml(date)}</div>
+      </article>
+    `;
+  });
+  $('achGrid').innerHTML = cards.join('');
+  updateAchievementsHubLabel();
+}
+
+function term(text) { $('term').textContent = text; }
+function banner(body) {
+  const name = state.username || 'Player';
+  const bar = '-'.repeat(Math.max(name.length + 21, 28));
+  term(`----------- Welcome, ${name} -----------\n${body}\n${bar}`);
+}
+
+function usernameToEmail(username) {
+  const clean = String(username).trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
+  if (!clean) throw new Error('Username must include letters or numbers.');
+  return `${clean}@idek-game.web.app`;
+}
+
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body || {}),
+  });
+  return res.json();
+}
+
+async function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function typewriter(text) {
+  for (let i = 0; i <= text.length; i++) {
+    banner(text.slice(0, i));
+    await sleep(Math.max(state.timing * 40, 8));
+  }
+}
+
+async function loading(prefix) {
+  for (let i = 0; i < 10; i++) {
+    banner(prefix + '.'.repeat((i % 3) + 1));
+    await sleep(Math.max(state.timing * 800, 40));
+  }
+  for (let i = 0; i < 4; i++) {
+    banner(i % 2 === 0 ? 'Loaded' : '');
+    await sleep(350);
+  }
+}
+
+function readStartFields() {
+  const name = $('username').value.trim();
+  const speed = Number($('speed').value);
+  $('loginMsg').textContent = '';
+  if (!name) { $('loginMsg').textContent = 'You must enter a name!'; return null; }
+  if (!(speed >= 1 && speed <= 10)) { $('loginMsg').textContent = 'Enter a speed from 1 to 10.'; return null; }
+  state.username = name;
+  state.timing = speed / 10;
+  return { name, speed };
+}
+
+function showPasswordPanel({ showInput, showChoices, showSubmit }) {
+  $('startForm').classList.add('hidden');
+  $('passwordBox').classList.remove('hidden');
+  $('password').classList.toggle('hidden', !showInput);
+  $('passChoices').classList.toggle('hidden', !showChoices);
+  $('passwordBtn').classList.toggle('hidden', !showSubmit);
+}
+
+$('backStart').onclick = () => {
+  state.mode = null;
+  state.passOpts = [];
+  $('password').value = '';
+  $('passChoices').innerHTML = '';
+  $('passwordBox').classList.add('hidden');
+  $('startForm').classList.remove('hidden');
+  $('loginMsg').textContent = '';
+  term('IDeK\nFirebase accounts enabled.\n\nEnter a username to log in or create an account.');
+};
+
+$('loginBtn').onclick = async () => {
+  const fields = readStartFields();
+  if (!fields) return;
+  state.mode = 'login';
+  showPasswordPanel({ showInput: true, showChoices: false, showSubmit: true });
+  $('passwordLabel').textContent = 'Password (case-sensitive, from when you created the account)';
+  await typewriter('Please enter your password!\nRemember, your password is Case-Sensitive!');
+  $('password').focus();
+};
+
+$('createBtn').onclick = async () => {
+  const fields = readStartFields();
+  if (!fields) return;
+  state.mode = 'create';
+
+  const unameRef = db.collection('usernames').doc(fields.name.toLowerCase());
+  const existing = await unameRef.get();
+  if (existing.exists) {
+    $('loginMsg').textContent = 'That username is already taken. Try Log In instead.';
+    return;
+  }
+
+  $('startForm').classList.add('hidden');
+  await loading('Preparing account');
+  const opts = await api('/api/pass_options', { username: fields.name });
+  state.passOpts = opts.options || [];
+  showPasswordPanel({ showInput: false, showChoices: true, showSubmit: false });
+  $('passwordLabel').textContent = 'Choose one password — this becomes your Firebase login password';
+
+  const box = $('passChoices');
+  box.innerHTML = '';
+  const lines = ['Select Password Option:'];
+  state.passOpts.forEach((o, i) => {
+    lines.push(`${i + 1}. ${o.pass}`);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'secondary';
+    b.style.display = 'block';
+    b.style.width = '100%';
+    b.style.marginTop = '8px';
+    b.textContent = `${i + 1}. ${o.pass}`;
+    b.onclick = () => choosePass(i);
+    box.appendChild(b);
+  });
+  await typewriter(lines.join('\n'));
+};
+
+$('passwordBtn').onclick = async () => {
+  if (state.mode !== 'login') return;
+  const password = $('password').value;
+  if (!password) {
+    $('loginMsg').textContent = 'Enter your password.';
+    return;
+  }
+  try {
+    const email = usernameToEmail(state.username);
+    const cred = await auth.signInWithEmailAndPassword(email, password);
+    await afterAuth(cred.user, state.username);
+  } catch (err) {
+    console.error(err);
+    $('loginMsg').textContent = friendlyAuthError(err);
+  }
+};
+
+async function choosePass(index) {
+  const opt = state.passOpts[index];
+  if (!opt) return;
+  $('loginMsg').textContent = 'Creating Firebase account…';
+  try {
+    const email = usernameToEmail(state.username);
+    const cred = await auth.createUserWithEmailAndPassword(email, opt.pass);
+    await cred.user.updateProfile({ displayName: state.username });
+
+    const batch = db.batch();
+    batch.set(db.collection('users').doc(cred.user.uid), {
+      username: state.username,
+      email,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    batch.set(db.collection('usernames').doc(state.username.toLowerCase()), {
+      uid: cred.user.uid,
+      username: state.username,
+    });
+    batch.set(db.collection('leaderboard').doc(cred.user.uid), {
+      username: state.username,
+      netWorth: 500,
+      cash: 500,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    await batch.commit();
+
+    banner(`>> Account created.\nUsername: ${state.username}\nPassword: ${opt.pass}\n\nRemember these — Firebase Auth stores the password securely.`);
+    await sleep(900);
+    await afterAuth(cred.user, state.username);
+  } catch (err) {
+    console.error(err);
+    $('loginMsg').textContent = friendlyAuthError(err);
+  }
+}
+
+function friendlyAuthError(err) {
+  const code = err && err.code;
+  if (code === 'auth/user-not-found' || code === 'auth/invalid-credential' || code === 'auth/wrong-password') {
+    return 'Login failed. Check username/password, or Create Account if you are new.';
+  }
+  if (code === 'auth/email-already-in-use') {
+    return 'That username already has an account. Use Log In.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'Password too weak (Firebase needs at least 6 characters).';
+  }
+  if (code === 'auth/operation-not-allowed') {
+    return 'Email/Password sign-in is not enabled in Firebase Console → Authentication → Sign-in method.';
+  }
+  if (code === 'auth/unauthorized-domain') {
+    return 'Add this domain under Firebase Authentication → Settings → Authorized domains (localhost / 127.0.0.1).';
+  }
+  return (err && err.message) || 'Authentication error.';
+}
+
+async function afterAuth(user, username) {
+  state.uid = user.uid;
+  state.username = username || user.displayName || state.username;
+  state.stage = 'Logged-In';
+  await loading('Please Wait While We Load Your Profile');
+  banner('logged in via Firebase.\n\nUse the buttons below to open a feature.');
+  $('hubTitle').textContent = `Welcome, ${state.username}`;
+  await loadAchievementProgress();
+  updateAchievementsHubLabel();
+  show('hub');
+  await syncLeaderboardFromMarket();
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (!user) return;
+  // Soft restore if page refreshed while signed in
+  if (state.stage === 'Logged-In') return;
+  state.uid = user.uid;
+  state.username = user.displayName || (user.email || '').split('@')[0] || 'Player';
+  state.stage = 'Logged-In';
+  await loadAchievementProgress();
+  updateAchievementsHubLabel();
+  $('hubTitle').textContent = `Welcome, ${state.username}`;
+  show('hub');
+});
+
+async function doLogout() {
+  setAuto(false);
+  await auth.signOut();
+  state.stage = null;
+  state.uid = null;
+  state.username = '';
+  state.achievements = {};
+  state.achievementStats = { tickCount: 0 };
+  show('login');
+  $('backStart').onclick();
+}
+
+$('logoutBtn').onclick = doLogout;
+$('logoutMenuBtn').onclick = doLogout;
+
+document.querySelectorAll('[data-placeholder]').forEach(btn => {
+  btn.onclick = () => alert(btn.dataset.placeholder + ' is coming soon.');
+});
+
+document.querySelector('[data-go="market"]').onclick = async () => {
+  show('market');
+  await refreshMarket();
+  setAuto(true);
+};
+
+document.querySelector('[data-go="leaderboard"]').onclick = async () => {
+  show('leaderboard');
+  await loadLeaderboard();
+};
+
+document.querySelector('[data-go="achievements"]').onclick = async () => {
+  show('achievements');
+  await loadAchievementsView();
+};
+
+$('backHubFromLb').onclick = () => show('hub');
+$('backHubFromAch').onclick = () => show('hub');
+$('refreshLb').onclick = () => loadLeaderboard();
+
+$('backHub').onclick = async () => {
+  setAuto(false);
+  await syncLeaderboardFromMarket();
+  show('hub');
+};
+
+$('tickBtn').onclick = async () => {
+  await api('/api/tick', {});
+  await refreshMarket('Tick', { action: 'tick' });
+  await syncLeaderboardFromMarket();
+};
+
+$('autoBtn').onclick = () => setAuto(!state.auto);
+
+function setAuto(on) {
+  state.auto = on;
+  $('autoBtn').textContent = on ? 'Auto: ON (5s)' : 'Auto: OFF';
+  if (state.autoTimer) { clearInterval(state.autoTimer); state.autoTimer = null; }
+  if (on) {
+    state.autoTimer = setInterval(async () => {
+      if ($('market').classList.contains('hidden')) return;
+      await api('/api/tick', {});
+      await refreshMarket(null, { action: 'tick' });
+      await syncLeaderboardFromMarket();
+    }, 5000);
+  }
+}
+
+async function syncLeaderboardFromMarket() {
+  if (!state.uid || !state.username) return;
+  try {
+    const data = await api('/api/market', { username: state.username });
+    await db.collection('leaderboard').doc(state.uid).set({
+      username: state.username,
+      netWorth: Number(data.net_worth) || 0,
+      cash: Number(data.cash) || 0,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+  } catch (err) {
+    console.warn('leaderboard sync failed', err);
+  }
+}
+
+async function loadLeaderboard() {
+  $('lbMsg').textContent = '';
+  $('lbBody').innerHTML = '<tr><td colspan="4">Loading…</td></tr>';
+  try {
+    await syncLeaderboardFromMarket();
+    const snap = await db.collection('leaderboard')
+      .orderBy('netWorth', 'desc')
+      .limit(25)
+      .get();
+    if (snap.empty) {
+      $('lbBody').innerHTML = '<tr><td colspan="4">No scores yet — play the market!</td></tr>';
+      return;
+    }
+    const rows = [];
+    let rank = 1;
+    snap.forEach(doc => {
+      const d = doc.data();
+      const me = doc.id === state.uid ? ' class="me"' : '';
+      rows.push(`<tr${me}><td>${rank}</td><td>${escapeHtml(d.username || '???')}</td><td>$${Number(d.netWorth || 0).toFixed(2)}</td><td>$${Number(d.cash || 0).toFixed(2)}</td></tr>`);
+      rank += 1;
+    });
+    $('lbBody').innerHTML = rows.join('');
+  } catch (err) {
+    console.error(err);
+    $('lbBody').innerHTML = '<tr><td colspan="4">Could not load leaderboard.</td></tr>';
+    $('lbMsg').textContent = err.message || String(err);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function drawChart(canvas, prices) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  canvas.width = w * dpr;
+  canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+  if (!prices || !prices.length) return;
+
+  let lo = Math.min(...prices);
+  let hi = Math.max(...prices);
+  if (hi <= lo) { hi = lo + 1; }
+  const left = 44, right = 10, top = 12, bottom = 24;
+  const plotW = w - left - right;
+  const plotH = h - top - bottom;
+
+  ctx.strokeStyle = '#5a6a7a';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(left, top);
+  ctx.lineTo(left, top + plotH);
+  ctx.lineTo(left + plotW, top + plotH);
+  ctx.stroke();
+
+  ctx.font = '10px Menlo, Consolas, monospace';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  [0, 0.5, 1].forEach(frac => {
+    const y = top + plotH * (1 - frac);
+    const val = lo + (hi - lo) * frac;
+    ctx.strokeStyle = '#2a3a4f';
+    ctx.beginPath();
+    ctx.moveTo(left, y);
+    ctx.lineTo(left + plotW, y);
+    ctx.stroke();
+    ctx.fillStyle = '#8b9bb0';
+    ctx.fillText('$' + val.toFixed(2), left - 4, y);
+  });
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const n = prices.length;
+  [0, Math.floor((n - 1) / 2), n - 1].forEach((idx, i) => {
+    if (n === 1 && i > 0) return;
+    const x = left + plotW * (n === 1 ? 0 : idx / (n - 1));
+    ctx.strokeStyle = '#2a3a4f';
+    ctx.beginPath();
+    ctx.moveTo(x, top);
+    ctx.lineTo(x, top + plotH);
+    ctx.stroke();
+    ctx.fillStyle = '#8b9bb0';
+    ctx.fillText(String(idx + 1), x, top + plotH + 4);
+  });
+  ctx.fillText('ticks', left + plotW / 2, h - 12);
+
+  ctx.strokeStyle = prices[n - 1] >= prices[0] ? '#3dd68c' : '#f07178';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  prices.forEach((p, i) => {
+    const x = left + plotW * (n === 1 ? 0 : i / (n - 1));
+    const y = top + plotH * (1 - (p - lo) / (hi - lo));
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+}
+
+async function refreshMarket(note, achievementContext = {}) {
+  const data = await api('/api/market', { username: state.username });
+  $('cashLine').textContent = `Cash: $${data.cash.toFixed(2)}`;
+  $('netLine').textContent = `Net worth: $${data.net_worth.toFixed(2)}`;
+  $('marketStatus').textContent = note || (state.auto ? 'Auto every 5s' : 'Auto paused');
+  if (data.message) $('marketMsg').textContent = data.message;
+  await checkMarketAchievements(data, achievementContext);
+
+  const qtyRemember = {};
+  document.querySelectorAll('[data-qty]').forEach(inp => {
+    qtyRemember[inp.dataset.qty] = inp.value;
+  });
+
+  const board = $('board');
+  board.innerHTML = '';
+  data.columns.forEach(col => {
+    const rid = col.risk_id;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.margin = '0';
+    const chgClass = col.percent_change >= 0 ? 'up' : 'down';
+    const dollarSign = col.dollar_change >= 0 ? '+$' : '-$';
+    const event = col.event
+      ? `EVENT: ${col.event.toUpperCase()}${col.event_ticks ? ' · ' + col.event_ticks + ' ticks left' : ''}`
+      : '';
+    const holdings = col.holdings || [];
+    const qtyVal = qtyRemember[rid] != null && qtyRemember[rid] !== '' ? qtyRemember[rid] : '1';
+    card.innerHTML = `
+      <h2>${col.label.toUpperCase()}</h2>
+      <canvas class="chart"></canvas>
+      <div class="price">$${col.value.toFixed(2)}</div>
+      <div class="chg ${chgClass}">${col.percent_change >= 0 ? '+' : ''}${col.percent_change.toFixed(1)}% (${dollarSign}${Math.abs(col.dollar_change).toFixed(2)})</div>
+      <div class="stats">
+        <div><span>High</span><b>$${col.session_high.toFixed(2)}</b></div>
+        <div><span>Low</span><b>$${col.session_low.toFixed(2)}</b></div>
+        <div><span>Total P/L</span><b style="color:${col.pl>=0?'var(--up)':'var(--down)'}">${col.pl>=0?'+':'-'}$${Math.abs(col.pl).toFixed(2)}</b></div>
+        <div><span>% Gain</span><b style="color:${col.gain>=0?'var(--up)':'var(--down)'}">${col.gain>=0?'+':''}${col.gain.toFixed(1)}%</b></div>
+        <div><span>Holdings (lots)</span><b>${col.holding_count} / ${data.max_holdings}</b></div>
+        <div><span>Shares</span><b>${col.share_count}</b></div>
+      </div>
+      <div class="event">${event}</div>
+      <div class="sub" style="margin:0">YOUR HOLDINGS (each buy = 1 lot)</div>
+      <ul class="holdings"></ul>
+      <div class="qty-row">
+        <label for="qty-${rid}">Qty</label>
+        <input id="qty-${rid}" data-qty="${rid}" type="number" min="1" step="1" value="${qtyVal}" />
+        <button type="button" data-buy="${rid}">Buy</button>
+      </div>
+      <div class="actions-row">
+        <button type="button" class="secondary" data-sell="${rid}">Sell Selected</button>
+        <button type="button" class="danger" data-sell-all="${rid}" ${holdings.length ? '' : 'disabled'}>Sell All Lots</button>
+      </div>
+    `;
+    const ul = card.querySelector('.holdings');
+    if (!holdings.length) {
+      ul.innerHTML = '<li class="empty">(no holdings yet)</li>';
+    } else {
+      holdings.forEach((h, i) => {
+        const li = document.createElement('li');
+        const qty = h.quantity || 1;
+        const pl = (col.value - h.cost) * qty;
+        li.textContent = `#${i+1}  ${qty} @ $${h.cost.toFixed(2)}  (${pl>=0?'+':'-'}$${Math.abs(pl).toFixed(2)})`;
+        if (state.selected[rid] === i) li.classList.add('selected');
+        li.onclick = () => { state.selected[rid] = i; refreshMarket(); };
+        ul.appendChild(li);
+      });
+    }
+    card.querySelector(`[data-buy="${rid}"]`).onclick = async () => {
+      const qty = Number(card.querySelector(`[data-qty="${rid}"]`).value);
+      const res = await api('/api/buy', { username: state.username, risk_id: rid, quantity: qty });
+      $('marketMsg').textContent = res.ok ? res.message : res.error;
+      await refreshMarket(null, { action: 'buy' });
+      await syncLeaderboardFromMarket();
+    };
+    card.querySelector(`[data-sell="${rid}"]`).onclick = async () => {
+      if (state.selected[rid] === null || state.selected[rid] === undefined) {
+        $('marketMsg').textContent = 'Click a holding lot, then Sell Selected.';
+        return;
+      }
+      const selectedIdx = state.selected[rid];
+      const selectedHolding = holdings[selectedIdx];
+      const lastSellPl = selectedHolding
+        ? (col.value - selectedHolding.cost) * (selectedHolding.quantity || 1)
+        : 0;
+      const res = await api('/api/sell', {
+        username: state.username,
+        risk_id: rid,
+        index: selectedIdx,
+      });
+      $('marketMsg').textContent = res.ok ? res.message : res.error;
+      state.selected[rid] = null;
+      await refreshMarket(null, { action: 'sell', lastSellPl: res.ok ? lastSellPl : 0 });
+      await syncLeaderboardFromMarket();
+    };
+    const sellAllBtn = card.querySelector(`[data-sell-all="${rid}"]`);
+    if (sellAllBtn) {
+      sellAllBtn.onclick = async () => {
+        ul.querySelectorAll('li').forEach(li => {
+          if (!li.classList.contains('empty')) li.classList.add('selected');
+        });
+        const res = await api('/api/sell_all', {
+          username: state.username,
+          risk_id: Number(rid),
+        });
+        $('marketMsg').textContent = res.ok
+          ? (res.message || 'Sold all lots for this risk level.')
+          : (res.error || 'Sell all failed.');
+        state.selected[rid] = null;
+        await refreshMarket(null, { action: 'sell', didSellAll: res.ok });
+        await syncLeaderboardFromMarket();
+      };
+    }
+    board.appendChild(card);
+    drawChart(card.querySelector('canvas'), col.prices);
+  });
+}
+</script>
+</body>
+</html>

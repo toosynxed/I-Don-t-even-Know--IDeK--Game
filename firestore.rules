@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Public read for the leaderboard; only the signed-in owner can write their row.
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow create, update: if request.auth != null
+        && request.auth.uid == uid
+        && request.resource.data.username is string
+        && request.resource.data.netWorth is number
+        && request.resource.data.cash is number;
+      allow delete: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Username registry so create-account can check uniqueness.
+    match /usernames/{usernameLower} {
+      allow read: if true;
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /users/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow create, update: if request.auth != null && request.auth.uid == uid;
+      allow delete: if false;
+    }
+  }
+}
