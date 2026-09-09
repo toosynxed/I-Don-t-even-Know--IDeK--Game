@@ -71,7 +71,8 @@ def body_text(name, space, type,timing=0.5):
 
 
 def action_csv(input, name, file_name, type, input2=None):
-    #random.seed(42) # num1: 41, num2: 8, num3: 2
+    #
+    # random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
         

@@ -33,7 +33,7 @@ def play(name):
             pass_select = int(input("Enter Choice (#): ")) - 1
             while pass_select > 2 or pass_select < 0:
                 pass_select = int(input("Please Re-Enter Your Choice (#): ")) - 1
-            action_csv(pass_opt[pass_select]['pass'],name, "user_pass.csv","set", pass_opt[pass_select]['id'])
+            action_csv(pass_opt[pass_select]['pass'],name, "user_pass.csv","set", pass_opt[pass_select]['id'],"username","pass_id","pass")
             print(f">> You must remember your username and password: {name}, {pass_opt[pass_select]['pass']}!")
             next = input(f"Press \033[1mEnter\033[0m To Continue! ")
 

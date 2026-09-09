@@ -75,7 +75,7 @@ def body_text(name, space, type,timing=0.5):
 
 
 
-def action_csv(input, name, file_name, type, input2=None):
+def action_csv(input, name, file_name, type, input2=None,input3=None,input4=None):
     random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
@@ -109,8 +109,9 @@ def action_csv(input, name, file_name, type, input2=None):
             data = []
             filename = file_name
             with open(filename, mode="a", newline="", encoding="utf-8") as f:
-                data.append({"username": name, "pass_id": input2, "pass": input})
-                writer = csv.DictWriter(f, fieldnames=["username", "pass_id", "pass"])
+                data.append({f"{input2}": name, f"{input3}": input2, f"{input4}": input})
+                writer = csv.DictWriter(f, fieldnames=[input2, input3, input4])
+                print("hi")
                 #writer.writeheader()
                 writer.writerows(data)
 

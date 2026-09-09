@@ -89,7 +89,8 @@ class Handler(BaseHTTPRequestHandler):
             username = (body.get("username") or "").strip()
             opts = action_csv(1, username, "pass_list.csv", "pass")
             self._json(200, {"options": opts})
-            return
+            return 
+        # TIP: Here to edit
 
         if path == "/api/tick":
             create_markets()
