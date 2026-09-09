@@ -15,17 +15,28 @@ from functions_terminal import body_text, clear_screen, action_csv
 #from main_terminal import timing
 
 def view_menu(name,balance=500,networth=500):
-    clear_screen()
-    space = f"Current Networth: {networth} | Current Account Balance: {balance}\nEnter A Number To Open One Of The Menus Below:\n1. Market\n2. Inventory\n3. Achievements\n4. Leaderboard"
-    body_text(name,space,2)
-    #try:
-    choice = int(input(f"Navigate To: "))
-    if choice <= 4 and choice >= 1:
-        navigation_menu(name,choice,balance,networth)
-    else: 
-        print("Input out of range!")
-    #except:
-    #    print("Invalid Input")
+    while True:
+        clear_screen()
+        space = f"Current Networth: {networth} | Current Account Balance: {balance}\nEnter A Number To Open One Of The Menus Below:\n1. Market\n2. Inventory\n3. Achievements\n4. Leaderboard"
+        body_text(name,space,2)
+
+        choice = input("Navigate To: ").strip()
+        if choice == "":
+            break
+
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("Invalid Input")
+            input("Press Enter to continue...")
+            continue
+
+        if 1 <= choice <= 4:
+            navigation_menu(name,choice,balance,networth)
+            input("Press Enter to return to the menu...")
+        else:
+            print("Input out of range!")
+            input("Press Enter to continue...")
 
     
 
@@ -188,5 +199,6 @@ if __name__ == "__main__":
 
 """    
 
-view_menu("Test User", 1000, 1500)
+if __name__ == "__main__":
+    view_menu("Test User", 1000, 1500)
 
