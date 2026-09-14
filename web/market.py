@@ -8,6 +8,12 @@ import os
 import csv
 import sys
 from collections import defaultdict
+from pathlib import Path
+
+# Data (CSV) files live at the repository root and are shared with the terminal
+# version, so resolve them relative to the repo root (the parent of this web/
+# folder) rather than the current working directory.
+DATA_DIR = Path(__file__).resolve().parent.parent
 
 try:
     import tkinter as tk
@@ -29,9 +35,9 @@ RISK_BOUNDS = {
     2: (0.01, 50.00),
     3: (0.01, 100.00),
 }
-HISTORY_FILE = "market_history.csv"
-WALLET_FILE = "user_wallets.csv"
-HOLDINGS_FILE = "user_holdings.csv"
+HISTORY_FILE = str(DATA_DIR / "market_history.csv")
+WALLET_FILE = str(DATA_DIR / "user_wallets.csv")
+HOLDINGS_FILE = str(DATA_DIR / "user_holdings.csv")
 WALLET_FIELDS = ["username", "cash"]
 HOLDINGS_FIELDS = ["username", "risk_id", "cost", "quantity"]
 MAX_HOLDINGS = 5  # max buy-lots (orders) per risk level — quantity is separate

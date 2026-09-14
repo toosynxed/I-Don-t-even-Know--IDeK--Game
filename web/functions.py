@@ -5,7 +5,18 @@ import csv
 import sys
 import tty
 import termios
+from pathlib import Path
 #from main import timing
+
+# CSV data files live at the repository root (shared with the terminal version),
+# so resolve bare file names relative to the repo root — the parent of this web/
+# folder — instead of the current working directory.
+DATA_DIR = Path(__file__).resolve().parent.parent
+
+
+def _data_path(file_name):
+    path = Path(file_name)
+    return path if path.is_absolute() else DATA_DIR / path
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -72,6 +83,7 @@ def body_text(name, space, type,timing=0.5):
 
 def action_csv(input, name, file_name, type, input2=None):
     #random.seed(42) # num1: 41, num2: 8, num3: 2
+    file_name = str(_data_path(file_name))
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
         

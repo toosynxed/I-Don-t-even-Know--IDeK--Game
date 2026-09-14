@@ -4,7 +4,7 @@
   "terminals": [
     {
       "name": "idek-server",
-      "command": "python3 main.py",
+      "command": "python3 web/main.py",
       "description": "IDeK web/market server (stdlib http.server). Serves the browser UI and market API at http://127.0.0.1:8765/. Auth & leaderboard use client-side Firebase; market ticks and portfolio use this server + CSV files."
     }
   ],

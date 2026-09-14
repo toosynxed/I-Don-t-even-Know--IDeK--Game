@@ -1,5 +1,9 @@
 import csv
 import random
+from pathlib import Path
+
+# pass_list.csv lives at the repository root (shared with the terminal version).
+DATA_DIR = Path(__file__).resolve().parent.parent
 
 # Seed for reproducibility
 random.seed(42)
@@ -28,7 +32,7 @@ for i in range(1, num_entries + 1):
     password = f"{w1}{num}{w2}"
     data.append({"id": i, "pass": password})
 
-filename = "pass_list.csv"
+filename = str(DATA_DIR / "pass_list.csv")
 with open(filename, mode="w", newline="", encoding="utf-8") as f:
     writer = csv.DictWriter(f, fieldnames=["id", "pass"])
     writer.writeheader()
