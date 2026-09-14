@@ -12,7 +12,8 @@ import sys
 import tty
 import termios
 import math
-from functions_terminal import body_text, clear_screen, action_csv, bit_check
+from functions_terminal import body_text, clear_screen, action_csv, bit_check, bit_check_ach
+from market_terminal import view_market, calc_market
 #from main_terminal import timing
 
 def view_menu(name,balance=500,networth=500):
@@ -23,9 +24,10 @@ def view_menu(name,balance=500,networth=500):
     choice = ""
     
     while True:
-        choice = input("Navigate To: ").strip()
+        choice = input("Enter Navigation Location (Empty For Menu): ").strip()
         if choice == "":
-            break
+            clear_screen()
+            view_menu(name,balance,networth)
         try:
             choice = int(choice)
         except ValueError:
@@ -45,8 +47,11 @@ def navigation_menu(name,choice,balance,networth):
 
     if choice == 1: # Market
         clear_screen()
+        """
         space = f"Market:\nxyz\nzxy\nyxz"
         body_text(name,space,2)
+        """
+        open_market(name,balance,networth)
 
     elif choice == 2: # Inventory
         clear_screen()
@@ -54,13 +59,18 @@ def navigation_menu(name,choice,balance,networth):
         open_inventory(name,balance,networth)
     elif choice == 3: # Achievements
         clear_screen()
-        pass
+        open_achievements(name,balance,networth)
+        
     elif choice == 4: # Leaderboard
         clear_screen()
         open_leaderboard(name,balance,networth)
 
 def open_market(name,balance,networth):
-    pass
+    calc_market()
+    view_market(name)
+    while input("Press Enter For Next Timestamp! (5 Minutes): ") == "":
+        calc_market()
+        view_market(name)
 
 def open_inventory(name,balance,networth):
     try:
@@ -78,15 +88,27 @@ def open_inventory(name,balance,networth):
     body_text(name,space,2)
     
 
-    while input("Press Enter To Return To Menu ") == "":
-        clear_screen()
-        view_menu(name,balance,networth)
+    #while input("Press Enter To Return To Menu ") == "":
+    #    clear_screen()
+    #    view_menu(name,balance,networth)
         
     # Use Bitwise!
     #if  & 5:
 
 def open_achievements(name,balance,networth):
-    pass
+    try:
+        basic_details = action_csv(1,name,"user_ach.csv","get")
+        bit_inv_ach = int(basic_details["bit_inv_ach"])
+        if bit_inv_ach >= 0:
+            inventory = bit_check_ach(bit_inv_ach)
+            clear_screen()
+    except:
+        print("Account Inventory Not Found\nInitialising New Account...")
+        action_csv(0,name,"user_ach.csv","update","username","bit_inv_ach")
+    
+    inventory_list = '\n'.join(inventory)
+    space = f"Held Achievements:\n{inventory_list}"
+    body_text(name,space,2)
 
 def open_leaderboard(name,balance,networth):
     #data = []           NOTE: REMOVE
@@ -162,7 +184,6 @@ def open_leaderboard(name,balance,networth):
 
         print(leaderboard)
         """
-
         leaderboard = shell_sort_nested(leaderboard)
         space = f"Cash Leaderboard:"
         place = 1
@@ -170,19 +191,16 @@ def open_leaderboard(name,balance,networth):
             cash = f"{round(row[1],2):.2f}"
             cash_deci = list(str(cash))
             cash_deci = cash_deci[-3:]
-            print(cash[:-3])
             multiple = int(math.floor(len(cash[:-3])/3))
-
-            print("multiple:",multiple)
-            #try:
-            back_cash = cash[:-(3+(multiple*3))]
-            print(back_cash, "back")
-            short_hand = [cash[:-3],"K","M","B","T","Qa","Qn"]
-            short_cash = f"{back_cash}{short_hand[multiple]}"            
-            print(short_cash)
-            #except:
-            print("nah")
-            user_row = f'\n{place}. {row[0]} - ${format_numbers_2(cash[:-3])}{"".join(cash_deci)}'
+            if (len(cash[:-3])/3).is_integer() == True:
+                back_cash = cash[:3]
+                short_hand = [cash[:-3],"K","M","B","T","Qa","Qn","Sx"]
+                short_cash = f"{back_cash}{short_hand[multiple - 1]}"      
+            elif (len(cash[:-3])/3).is_integer() == False:
+                back_cash = cash[:-(3+(multiple*3))]
+                short_hand = [cash[:-3],"K","M","B","T","Qa","Qn","Sx"]
+                short_cash = f"{back_cash}{short_hand[multiple]}"            
+            user_row = f'\n{place}. {row[0]} - ${format_numbers_2(cash[:-3])}{"".join(cash_deci)} ({short_cash})'
             space = f"{space}{user_row}"
             place = place + 1
         body_text(name,space,2)

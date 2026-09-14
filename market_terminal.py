@@ -118,10 +118,10 @@ def view_market(name):
         dollar_sign = "+$" if dollar_change >= 0 else "-$"
         market_lines.append(
             f"{label}: {current_value:.2f} "
-            f"[{percent_change:+.1f}%, {dollar_sign}{abs(dollar_change):.2f}]"
+            f"[{percent_change:+.1f}% | {dollar_sign}{abs(dollar_change):.2f}]"
         )
     market_info = "\n".join(market_lines)
-    body_text(name, market_info, 3)
+    body_text(name, market_info, 3,0.01)
     return market_info
 
 def retreive_market(risk_id,find_row):
@@ -155,5 +155,6 @@ def find_recent_market_row(risk_id):
 
 if __name__ == "__main__":
     create_markets()
-    calc_market()
-    view_market("Test")
+    while input("Press Enter For Next Timestamp! (5 Minutes): ") == "":
+        calc_market()
+        view_market("Test")

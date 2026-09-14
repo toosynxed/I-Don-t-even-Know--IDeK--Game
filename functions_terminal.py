@@ -38,7 +38,7 @@ def body_text(name, space, type,timing=0.5):
                 Up_text = f"----------- Welcome, {name} -----------\n{temp_space}\n---------------------{len(name)*'-'}------------"
 
                 print(Up_text)
-                time.sleep(0.05)
+                time.sleep(timing)
                 clear_screen()
         elif type == 4:
             iteration = 1
@@ -190,7 +190,7 @@ def login_check(name,name_check,timing):
         space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
         basic_details = action_csv(1,name,"user_pass.csv","get")
         name = basic_details["username"]
-        body_text(name,space,3)
+        body_text(name,space,3,0.05)
         password_input = mask_input()
         if password_input == basic_details["pass"]:
             print("yes")
@@ -232,35 +232,66 @@ def call_password_select(name):
     pass_opt = action_csv(1,name,"pass_list.csv","pass")
     space = f"Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']}"
     #Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']} 
-    body_text(name, space, 3)
+    body_text(name, space, 3,0.05)
     return pass_opt
 
 
 def bit_check(bit_value):
     inventory = []
     if (bit_value & 1) != 0:
-        inventory.append("Item 1")
+        inventory.append("- Item 1")
     if (bit_value & 2) != 0:
-        inventory.append("Item 2")
+        inventory.append("- Item 2")
     if (bit_value & 4) != 0:
-        inventory.append("Item 3")
+        inventory.append("- Item 3")
     if (bit_value & 8) != 0:
-        inventory.append("Item 4")
+        inventory.append("- Item 4")
     if (bit_value & 16) != 0:
-        inventory.append("Item 5")
+        inventory.append("- Item 5")
     if (bit_value & 32) != 0:
-        inventory.append("Item 6")        
+        inventory.append("- Item 6")        
     if (bit_value & 64) != 0:
-        inventory.append("Item 7")
+        inventory.append("- Item 7")
     if (bit_value & 128) != 0:
-        inventory.append("Item 8")
+        inventory.append("- Item 8")
     if (bit_value & 256) != 0:
-        inventory.append("Item 9")
+        inventory.append("- Item 9")
     if (bit_value & 512) != 0:
-        inventory.append("Item 10")
+        inventory.append("- Item 10")
     if (bit_value & 1024) != 0:
-        inventory.append("Item 11")
+        inventory.append("- Item 11")
     if (bit_value & 2048) != 0:
-        inventory.append("Item 12")
+        inventory.append("- Item 12")
     return inventory 
+
+
+
+
+def bit_check_ach(bit_value):
+    achievements = []
+    if (bit_value & 1) != 0:
+        achievements.append("- Achievement 1")
+    if (bit_value & 2) != 0:
+        achievements.append("- Achievement 2")
+    if (bit_value & 4) != 0:
+        achievements.append("- Achievement 3")
+    if (bit_value & 8) != 0:
+        achievements.append("- Achievement 4")
+    if (bit_value & 16) != 0:
+        achievements.append("- Achievement 5")
+    if (bit_value & 32) != 0:
+        achievements.append("- Achievement 6")        
+    if (bit_value & 64) != 0:
+        achievements.append("- Achievement 7")
+    if (bit_value & 128) != 0:
+        achievements.append("- Achievement 8")
+    if (bit_value & 256) != 0:
+        achievements.append("- Achievement 9")
+    if (bit_value & 512) != 0:
+        achievements.append("- Achievement 10")    
+    if (bit_value & 1024) != 0:
+        achievements.append("- Achievement 11")
+    if (bit_value & 2048) != 0:
+        achievements.append("- Achievement 12")
+    return achievements 
     
