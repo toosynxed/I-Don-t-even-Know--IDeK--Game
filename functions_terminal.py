@@ -12,6 +12,7 @@ import tty
 import termios
 #from main_terminal import timing
 
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 def crash():
@@ -75,7 +76,7 @@ def body_text(name, space, type,timing=0.5):
 
 
 
-def action_csv(input, name, file_name, type, input2=None,input3=None,input4=None):
+def action_csv(third_info, name, file_name, type, first_col=None,second_col=None,third_col=None):
     random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
@@ -109,9 +110,8 @@ def action_csv(input, name, file_name, type, input2=None,input3=None,input4=None
             data = []
             filename = file_name
             with open(filename, mode="a", newline="", encoding="utf-8") as f:
-                data.append({f"{input2}": name, f"{input3}": input2, f"{input4}": input})
-                writer = csv.DictWriter(f, fieldnames=[input2, input3, input4])
-                print("hi")
+                data.append({"username": name, f"{second_col}": second_col, f"{third_col}": third_info})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
+                writer = csv.DictWriter(f, fieldnames=["username", f"{second_col}", f"{third_col}"])  #
                 #writer.writeheader()
                 writer.writerows(data)
 
@@ -141,6 +141,15 @@ def action_csv(input, name, file_name, type, input2=None,input3=None,input4=None
                         return row
 
             return None  
+        elif type == "update":
+            data = []
+            filename = file_name
+            with open(filename, mode="a", newline="", encoding="utf-8") as f:
+                data.append({"username": name, f"{second_col}": third_info, f"{third_col}": third_col})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
+                writer = csv.DictWriter(f, fieldnames=["username", f"{second_col}", f"{third_col}"])  #
+                #writer.writeheader()
+                writer.writerows(data)
+
 
 
 
@@ -225,3 +234,33 @@ def call_password_select(name):
     #Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']} 
     body_text(name, space, 3)
     return pass_opt
+
+
+def bit_check(bit_value):
+    inventory = []
+    if (bit_value & 1) != 0:
+        inventory.append("Item 1")
+    if (bit_value & 2) != 0:
+        inventory.append("Item 2")
+    if (bit_value & 4) != 0:
+        inventory.append("Item 3")
+    if (bit_value & 8) != 0:
+        inventory.append("Item 4")
+    if (bit_value & 16) != 0:
+        inventory.append("Item 5")
+    if (bit_value & 32) != 0:
+        inventory.append("Item 6")        
+    if (bit_value & 64) != 0:
+        inventory.append("Item 7")
+    if (bit_value & 128) != 0:
+        inventory.append("Item 8")
+    if (bit_value & 256) != 0:
+        inventory.append("Item 9")
+    if (bit_value & 512) != 0:
+        inventory.append("Item 10")
+    if (bit_value & 1024) != 0:
+        inventory.append("Item 11")
+    if (bit_value & 2048) != 0:
+        inventory.append("Item 12")
+    return inventory 
+    

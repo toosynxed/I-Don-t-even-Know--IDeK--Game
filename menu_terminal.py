@@ -11,7 +11,8 @@ import csv
 import sys
 import tty
 import termios
-from functions_terminal import body_text, clear_screen, action_csv
+import math
+from functions_terminal import body_text, clear_screen, action_csv, bit_check
 #from main_terminal import timing
 
 def view_menu(name,balance=500,networth=500):
@@ -19,11 +20,21 @@ def view_menu(name,balance=500,networth=500):
     space = f"Current Networth: {networth} | Current Account Balance: {balance}\nEnter A Number To Open One Of The Menus Below:\n1. Market\n2. Inventory\n3. Achievements\n4. Leaderboard"
     body_text(name,space,2)
     #try:
-    choice = int(input(f"Navigate To: "))
-    if choice <= 4 and choice >= 1:
-        navigation_menu(name,choice,balance,networth)
-    else: 
-        print("Input out of range!")
+    choice = ""
+    
+    while True:
+        choice = input("Navigate To: ").strip()
+        if choice == "":
+            break
+        try:
+            choice = int(choice)
+        except ValueError:
+            print("Invalid Input")
+            continue
+        if 1 <= choice <= 4:
+            navigation_menu(name, choice, balance, networth)
+        else:
+            print("Input out of range!")
     #except:
     #    print("Invalid Input")
 
@@ -31,25 +42,46 @@ def view_menu(name,balance=500,networth=500):
 
 
 def navigation_menu(name,choice,balance,networth):
+
     if choice == 1: # Market
+        clear_screen()
         space = f"Market:\nxyz\nzxy\nyxz"
         body_text(name,space,2)
 
     elif choice == 2: # Inventory
+        clear_screen()
         space = f""
         open_inventory(name,balance,networth)
     elif choice == 3: # Achievements
+        clear_screen()
         pass
     elif choice == 4: # Leaderboard
+        clear_screen()
         open_leaderboard(name,balance,networth)
 
 def open_market(name,balance,networth):
     pass
 
 def open_inventory(name,balance,networth):
+    try:
+        basic_details = action_csv(1,name,"user_inventories.csv","get")
+        bit_inv = int(basic_details["bit_inv"])
+        if bit_inv >= 0:
+            inventory = bit_check(bit_inv)
+            clear_screen()
+    except:
+        print("Account Inventory Not Found\nInitialising New Account...")
+        action_csv(0,name,"user_inventories.csv","update","username","bit_inv")
+    
+    inventory_list = '\n'.join(inventory)
+    space = f"Inventory:\n{inventory_list}"
+    body_text(name,space,2)
+    
 
-    action_csv(name,name,"user_inventories.csv","set","username","bit_inv","")
-    print("hi")
+    while input("Press Enter To Return To Menu ") == "":
+        clear_screen()
+        view_menu(name,balance,networth)
+        
     # Use Bitwise!
     #if  & 5:
 
@@ -138,6 +170,18 @@ def open_leaderboard(name,balance,networth):
             cash = f"{round(row[1],2):.2f}"
             cash_deci = list(str(cash))
             cash_deci = cash_deci[-3:]
+            print(cash[:-3])
+            multiple = int(math.floor(len(cash[:-3])/3))
+
+            print("multiple:",multiple)
+            #try:
+            back_cash = cash[:-(3+(multiple*3))]
+            print(back_cash, "back")
+            short_hand = [cash[:-3],"K","M","B","T","Qa","Qn"]
+            short_cash = f"{back_cash}{short_hand[multiple]}"            
+            print(short_cash)
+            #except:
+            print("nah")
             user_row = f'\n{place}. {row[0]} - ${format_numbers_2(cash[:-3])}{"".join(cash_deci)}'
             space = f"{space}{user_row}"
             place = place + 1
