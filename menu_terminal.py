@@ -99,16 +99,27 @@ def open_achievements(name,balance,networth):
     try:
         basic_details = action_csv(1,name,"user_ach.csv","get")
         bit_inv_ach = int(basic_details["bit_inv_ach"])
+        bit_inv_read = int(basic_details["bit_inv_read"])
         if bit_inv_ach >= 0:
-            inventory = bit_check_ach(bit_inv_ach)
+            inventory = bit_check_ach(bit_inv_ach,bit_inv_read)
             clear_screen()
+        
     except:
         print("Account Inventory Not Found\nInitialising New Account...")
-        action_csv(0,name,"user_ach.csv","update","username","bit_inv_ach")
+        action_csv(0,name,"user_ach.csv","update","username","bit_inv_ach",0)
+        basic_details = action_csv(1,name,"user_ach.csv","get")
+        bit_inv_ach = int(basic_details["bit_inv_ach"])
+        bit_inv_read = int(basic_details["bit_inv_read"])
+
+        if bit_inv_ach >= 0:
+            inventory = bit_check_ach(bit_inv_ach, bit_inv_read)
+            clear_screen()
+    
     
     inventory_list = '\n'.join(inventory)
     space = f"Held Achievements:\n{inventory_list}"
     body_text(name,space,2)
+    action_csv(0,name,"user_ach.csv","change","username",bit_inv_ach, bit_inv_read)
 
 def open_leaderboard(name,balance,networth):
     #data = []           NOTE: REMOVE

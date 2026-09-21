@@ -150,6 +150,21 @@ def action_csv(third_info, name, file_name, type, first_col=None,second_col=None
                 #writer.writeheader()
                 writer.writerows(data)
 
+        elif type == "change":
+            data = []
+            filename = file_name
+
+       
+            with open(filename, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                rows = list(reader) 
+            target_row_index = rows.index([name, f"{second_col}", f"{third_col}"])
+            rows[target_row_index] = [name, f"{second_col}", f"{third_info}"]
+
+            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerows(rows)
+
 
 
 
@@ -267,31 +282,66 @@ def bit_check(bit_value):
 
 
 
-def bit_check_ach(bit_value):
+def bit_check_ach(bit_value, bit_read):
     achievements = []
     if (bit_value & 1) != 0:
-        achievements.append("- Achievement 1")
+        if (bit_read & 1) != 0:
+            achievements.append("- Achievement 1 (NEW)")
+        else:
+            achievements.append("- Achievement 1")
     if (bit_value & 2) != 0:
-        achievements.append("- Achievement 2")
+        if (bit_read & 2) != 0:
+            achievements.append("- Achievement 2 (NEW)")
+        else:
+            achievements.append("- Achievement 2")
     if (bit_value & 4) != 0:
-        achievements.append("- Achievement 3")
+        if (bit_read & 4) != 0:
+            achievements.append("- Achievement 3 (NEW)")
+        else:
+            achievements.append("- Achievement 3")
     if (bit_value & 8) != 0:
-        achievements.append("- Achievement 4")
+        if (bit_read & 8) != 0:
+            achievements.append("- Achievement 4 (NEW)")
+        else:
+            achievements.append("- Achievement 4")
     if (bit_value & 16) != 0:
-        achievements.append("- Achievement 5")
+        if (bit_read & 16) != 0:
+            achievements.append("- Achievement 5 (NEW)")
+        else:
+            achievements.append("- Achievement 5")
     if (bit_value & 32) != 0:
-        achievements.append("- Achievement 6")        
+        if (bit_read & 32) != 0:
+            achievements.append("- Achievement 6 (NEW)")
+        else:
+            achievements.append("- Achievement 6")
     if (bit_value & 64) != 0:
-        achievements.append("- Achievement 7")
+        if (bit_read & 64) != 0:
+            achievements.append("- Achievement 7 (NEW)")
+        else:
+            achievements.append("- Achievement 7")
     if (bit_value & 128) != 0:
-        achievements.append("- Achievement 8")
+        if (bit_read & 128) != 0:
+            achievements.append("- Achievement 8 (NEW)")
+        else:
+            achievements.append("- Achievement 8")
     if (bit_value & 256) != 0:
-        achievements.append("- Achievement 9")
+        if (bit_read & 256) != 0:
+            achievements.append("- Achievement 9 (NEW)")
+        else:
+            achievements.append("- Achievement 9")
     if (bit_value & 512) != 0:
-        achievements.append("- Achievement 10")    
+        if (bit_read & 512) != 0:
+            achievements.append("- Achievement 10 (NEW)")
+        else:
+            achievements.append("- Achievement 10")
     if (bit_value & 1024) != 0:
-        achievements.append("- Achievement 11")
+        if (bit_read & 1024) != 0:
+            achievements.append("- Achievement 11 (NEW)")
+        else:
+            achievements.append("- Achievement 11")
     if (bit_value & 2048) != 0:
-        achievements.append("- Achievement 12")
-    return achievements 
-    
+        if (bit_read & 2048) != 0:
+            achievements.append("- Achievement 12 (NEW)")
+        else:
+            achievements.append("- Achievement 12")
+    return achievements
