@@ -53,6 +53,5 @@ def play(name):
             print("Incorrect password provided!")
     except:
         print("You are not logged-in!\nPlease restart the proccess!")
-
 play(input("Enter Username: "))
 

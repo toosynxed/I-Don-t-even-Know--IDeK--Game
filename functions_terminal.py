@@ -76,7 +76,7 @@ def body_text(name, space, type,timing=0.5):
 
 
 
-def action_csv(third_info, name, file_name, type, first_col=None,second_col=None,third_col=None):
+def action_csv(third_info, name, file_name, type, first_col=None,second_col=None,third_col=None,bit_ach=None):
     random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
@@ -159,7 +159,7 @@ def action_csv(third_info, name, file_name, type, first_col=None,second_col=None
                 reader = csv.reader(file)
                 rows = list(reader) 
             target_row_index = rows.index([name, f"{second_col}", f"{third_col}"])
-            rows[target_row_index] = [name, f"{second_col}", f"{third_info}"]
+            rows[target_row_index] = [name, f"{bit_ach}", f"{third_info}"]
 
             with open(filename, mode='w', newline='', encoding='utf-8') as file:
                 writer = csv.writer(file)
@@ -201,17 +201,21 @@ def login_check(name,name_check,timing):
         print("You must enter a name!")
         return TypeError
     elif name_check == 1:
-        #Needs to do the enter password to "Login" method/check 
-        space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
-        basic_details = action_csv(1,name,"user_pass.csv","get")
-        name = basic_details["username"]
-        body_text(name,space,3,0.05)
-        password_input = mask_input()
-        if password_input == basic_details["pass"]:
-            print("yes")
-            stage = "Logged-In"
-            return stage, name
-        else:
+        try:
+            #Needs to do the enter password to "Login" method/check 
+            space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
+            basic_details = action_csv(1,name,"user_pass.csv","get")
+            name = basic_details["username"]
+            body_text(name,space,3,0.05)
+            password_input = mask_input()
+            if password_input == basic_details["pass"]:
+                print("yes")
+                stage = "Logged-In"
+                return stage, name
+            else:
+                stage = "Not-Logged-In"
+                return stage
+        except:
             stage = "Not-Logged-In"
             return stage
 
@@ -286,14 +290,14 @@ def bit_check_ach(bit_value, bit_read):
     achievements = []
     if (bit_value & 1) != 0:
         if (bit_read & 1) != 0:
-            achievements.append("- Achievement 1 (NEW)")
+            achievements.append('- "Open Inventory" (NEW)')
         else:
-            achievements.append("- Achievement 1")
+            achievements.append('- "Open Inventory"')
     if (bit_value & 2) != 0:
         if (bit_read & 2) != 0:
-            achievements.append("- Achievement 2 (NEW)")
+            achievements.append('- Make Your First Trade (NEW)')
         else:
-            achievements.append("- Achievement 2")
+            achievements.append('- Make Your First Trade')
     if (bit_value & 4) != 0:
         if (bit_read & 4) != 0:
             achievements.append("- Achievement 3 (NEW)")

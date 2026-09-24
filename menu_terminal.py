@@ -17,6 +17,10 @@ from market_terminal import view_market, calc_market
 #from main_terminal import timing
 
 def view_menu(name,balance=500,networth=500):
+
+    
+
+
     clear_screen()
     space = f"Current Networth: {networth} | Current Account Balance: {balance}\nEnter A Number To Open One Of The Menus Below:\n1. Market\n2. Inventory\n3. Achievements\n4. Leaderboard"
     body_text(name,space,2)
@@ -111,15 +115,24 @@ def open_achievements(name,balance,networth):
         bit_inv_ach = int(basic_details["bit_inv_ach"])
         bit_inv_read = int(basic_details["bit_inv_read"])
 
+        bit_inv_ach = int(basic_details["bit_inv_ach"])
+        bit_inv_read = int(basic_details["bit_inv_read"])
+        
+        action_csv(bit_inv_ach + 1,name,"user_ach.csv","change","username",bit_inv_ach, bit_inv_read,bit_inv_ach+1)
+        bit_inv_ach = bit_inv_ach + 1
+        bit_inv_read = bit_inv_read + 1
+    
+
         if bit_inv_ach >= 0:
             inventory = bit_check_ach(bit_inv_ach, bit_inv_read)
             clear_screen()
     
     
+    
     inventory_list = '\n'.join(inventory)
     space = f"Held Achievements:\n{inventory_list}"
     body_text(name,space,2)
-    action_csv(0,name,"user_ach.csv","change","username",bit_inv_ach, bit_inv_read)
+    action_csv(0,name,"user_ach.csv","change","username",bit_inv_ach, bit_inv_read, bit_inv_ach)
 
 def open_leaderboard(name,balance,networth):
     #data = []           NOTE: REMOVE
@@ -251,7 +264,7 @@ def shell_sort_nested(arr):
 
 
 # Example Usage
-""""
+"""
 if __name__ == "__main__":
     data = [54, 26, 93, 17, 77, 31, 44, 55, 20]
     print("Original array:", data)
@@ -261,5 +274,5 @@ if __name__ == "__main__":
 
 """    
 
-view_menu("Test User", 1000, 1500)
+#view_menu("Test User", 1000, 1500)
 
