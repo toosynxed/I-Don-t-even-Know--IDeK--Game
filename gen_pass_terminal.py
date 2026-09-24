@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""Generate pass_list.csv — original utility script (restored from pre-GUI version).
+
+Run:  python3 gen_pass_terminal.py
+"""
 import csv
 import random
 

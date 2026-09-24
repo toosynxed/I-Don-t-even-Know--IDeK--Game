@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+"""IDeK shared helpers — original command-line version (restored from pre-GUI version).
+
+Used by main_terminal.py and market_terminal.py.
+"""
 import random
 import os
 import time
@@ -5,7 +10,8 @@ import csv
 import sys
 import tty
 import termios
-#from main import timing
+#from main_terminal import timing
+
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -32,7 +38,7 @@ def body_text(name, space, type,timing=0.5):
                 Up_text = f"----------- Welcome, {name} -----------\n{temp_space}\n---------------------{len(name)*'-'}------------"
 
                 print(Up_text)
-                time.sleep(0.05)
+                time.sleep(timing)
                 clear_screen()
         elif type == 4:
             iteration = 1
@@ -70,8 +76,8 @@ def body_text(name, space, type,timing=0.5):
 
 
 
-def action_csv(input, name, file_name, type, input2=None):
-    #random.seed(42) # num1: 41, num2: 8, num3: 2
+def action_csv(third_info, name, file_name, type, first_col=None,second_col=None,third_col=None,bit_ach=None):
+    random.seed(42) # num1: 41, num2: 8, num3: 2
     with open(file_name, mode='r', newline='', encoding='utf-8') as file:
         data_list = list(csv.DictReader(file))
         
@@ -104,8 +110,8 @@ def action_csv(input, name, file_name, type, input2=None):
             data = []
             filename = file_name
             with open(filename, mode="a", newline="", encoding="utf-8") as f:
-                data.append({"username": name, "pass_id": input2, "pass": input})
-                writer = csv.DictWriter(f, fieldnames=["username", "pass_id", "pass"])
+                data.append({"username": name, f"{second_col}": second_col, f"{third_col}": third_info})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
+                writer = csv.DictWriter(f, fieldnames=["username", f"{second_col}", f"{third_col}"])  #
                 #writer.writeheader()
                 writer.writerows(data)
 
@@ -135,6 +141,30 @@ def action_csv(input, name, file_name, type, input2=None):
                         return row
 
             return None  
+        elif type == "update":
+            data = []
+            filename = file_name
+            with open(filename, mode="a", newline="", encoding="utf-8") as f:
+                data.append({"username": name, f"{second_col}": third_info, f"{third_col}": third_col})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
+                writer = csv.DictWriter(f, fieldnames=["username", f"{second_col}", f"{third_col}"])  #
+                #writer.writeheader()
+                writer.writerows(data)
+
+        elif type == "change":
+            data = []
+            filename = file_name
+
+       
+            with open(filename, mode='r', newline='', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                rows = list(reader) 
+            target_row_index = rows.index([name, f"{second_col}", f"{third_col}"])
+            rows[target_row_index] = [name, f"{bit_ach}", f"{third_info}"]
+
+            with open(filename, mode='w', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file)
+                writer.writerows(rows)
+
 
 
 
@@ -171,15 +201,23 @@ def login_check(name,name_check,timing):
         print("You must enter a name!")
         return TypeError
     elif name_check == 1:
-        #Needs to do the enter password to "Login" method/check 
-        space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
-        basic_details = action_csv(1,name,"user_pass.csv","get")
-        name = basic_details["username"]
-        body_text(name,space,3)
-        password_input = mask_input()
-        if password_input == basic_details["pass"]:
-
-            stage = "Logged-In"
+        try:
+            #Needs to do the enter password to "Login" method/check 
+            space = f"\033[0mPlease enter your password!\nRemember, your password is \033[3mCase-Sensitive\033[0m!"
+            basic_details = action_csv(1,name,"user_pass.csv","get")
+            name = basic_details["username"]
+            body_text(name,space,3,0.05)
+            password_input = mask_input()
+            if password_input == basic_details["pass"]:
+                print("yes")
+                stage = "Logged-In"
+                return stage, name
+            else:
+                stage = "Not-Logged-In"
+                return stage
+        except:
+            stage = "Not-Logged-In"
+            return stage
 
     else:
         #body_text(name, f"Loading{iteration * '.'}", 4, timing)
@@ -213,5 +251,101 @@ def call_password_select(name):
     pass_opt = action_csv(1,name,"pass_list.csv","pass")
     space = f"Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']}"
     #Select Password Option:\n1. {pass_opt[0]['pass']}\n2. {pass_opt[1]['pass']}\n3. {pass_opt[2]['pass']} 
-    body_text(name, space, 3)
+    body_text(name, space, 3,0.05)
     return pass_opt
+
+
+def bit_check(bit_value):
+    inventory = []
+    if (bit_value & 1) != 0:
+        inventory.append("- Item 1")
+    if (bit_value & 2) != 0:
+        inventory.append("- Item 2")
+    if (bit_value & 4) != 0:
+        inventory.append("- Item 3")
+    if (bit_value & 8) != 0:
+        inventory.append("- Item 4")
+    if (bit_value & 16) != 0:
+        inventory.append("- Item 5")
+    if (bit_value & 32) != 0:
+        inventory.append("- Item 6")        
+    if (bit_value & 64) != 0:
+        inventory.append("- Item 7")
+    if (bit_value & 128) != 0:
+        inventory.append("- Item 8")
+    if (bit_value & 256) != 0:
+        inventory.append("- Item 9")
+    if (bit_value & 512) != 0:
+        inventory.append("- Item 10")
+    if (bit_value & 1024) != 0:
+        inventory.append("- Item 11")
+    if (bit_value & 2048) != 0:
+        inventory.append("- Item 12")
+    return inventory 
+
+
+
+
+def bit_check_ach(bit_value, bit_read):
+    achievements = []
+    if (bit_value & 1) != 0:
+        if (bit_read & 1) != 0:
+            achievements.append('- "Open Inventory" (NEW)')
+        else:
+            achievements.append('- "Open Inventory"')
+    if (bit_value & 2) != 0:
+        if (bit_read & 2) != 0:
+            achievements.append('- Make Your First Trade (NEW)')
+        else:
+            achievements.append('- Make Your First Trade')
+    if (bit_value & 4) != 0:
+        if (bit_read & 4) != 0:
+            achievements.append("- Achievement 3 (NEW)")
+        else:
+            achievements.append("- Achievement 3")
+    if (bit_value & 8) != 0:
+        if (bit_read & 8) != 0:
+            achievements.append("- Achievement 4 (NEW)")
+        else:
+            achievements.append("- Achievement 4")
+    if (bit_value & 16) != 0:
+        if (bit_read & 16) != 0:
+            achievements.append("- Achievement 5 (NEW)")
+        else:
+            achievements.append("- Achievement 5")
+    if (bit_value & 32) != 0:
+        if (bit_read & 32) != 0:
+            achievements.append("- Achievement 6 (NEW)")
+        else:
+            achievements.append("- Achievement 6")
+    if (bit_value & 64) != 0:
+        if (bit_read & 64) != 0:
+            achievements.append("- Achievement 7 (NEW)")
+        else:
+            achievements.append("- Achievement 7")
+    if (bit_value & 128) != 0:
+        if (bit_read & 128) != 0:
+            achievements.append("- Achievement 8 (NEW)")
+        else:
+            achievements.append("- Achievement 8")
+    if (bit_value & 256) != 0:
+        if (bit_read & 256) != 0:
+            achievements.append("- Achievement 9 (NEW)")
+        else:
+            achievements.append("- Achievement 9")
+    if (bit_value & 512) != 0:
+        if (bit_read & 512) != 0:
+            achievements.append("- Achievement 10 (NEW)")
+        else:
+            achievements.append("- Achievement 10")
+    if (bit_value & 1024) != 0:
+        if (bit_read & 1024) != 0:
+            achievements.append("- Achievement 11 (NEW)")
+        else:
+            achievements.append("- Achievement 11")
+    if (bit_value & 2048) != 0:
+        if (bit_read & 2048) != 0:
+            achievements.append("- Achievement 12 (NEW)")
+        else:
+            achievements.append("- Achievement 12")
+    return achievements
