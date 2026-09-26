@@ -6,7 +6,8 @@ Tbh, originally I wasn't even sure what I wanted to do with this, but I guess th
 - Pretty much just a game (Or the framework at least - More actual content to come!)
 
 ### How to play?
-- Just go into ```main_terminal.py``` and run ```python3 main_terminal.py```.
+- Double-click the ```IDeK``` executable (it opens in Terminal), or run ```python3 main_terminal.py```.
+- The executable creates its save files (```user_pass.csv```, ```user_wallets.csv```, etc.) in the same folder as itself.
 - Next, enter your username, and select a speed (1 - Very fast for animations, 10 - Much slower speed).
 - If the username already exists, you will be prompted to log-in with your password, or to create an account if not.
 
@@ -21,6 +22,15 @@ Also mainly a placeholder for future content, but does feature one achievement o
 
 4. Leaderboard:
 A functional leaderboard for your account Networth (from market), however, even though this works, as the market features are not quite ready yet, you will not be able to change your networth unless you edit you stats in ```user_wallets.csv```.
+
+
+### Building the executable:
+```
+python3 -m venv .venv-build
+.venv-build/bin/pip install pyinstaller
+.venv-build/bin/pyinstaller -y IDeK.spec
+```
+The executable is written to ```dist/IDeK```.
 
 
 ## What Each File Is:

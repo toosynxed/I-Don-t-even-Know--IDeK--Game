@@ -110,7 +110,7 @@ def action_csv(third_info, name, file_name, type, first_col=None,second_col=None
             data = []
             filename = file_name
             with open(filename, mode="a", newline="", encoding="utf-8") as f:
-                data.append({"username": name, f"{second_col}": second_col, f"{third_col}": third_info})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
+                data.append({"username": name, f"{second_col}": first_col, f"{third_col}": third_info})#first / name - username, second / secondinput - pass_id, third / thirdinput - pass
                 writer = csv.DictWriter(f, fieldnames=["username", f"{second_col}", f"{third_col}"])  #
                 #writer.writeheader()
                 writer.writerows(data)
@@ -214,10 +214,10 @@ def login_check(name,name_check,timing):
                 return stage, name
             else:
                 stage = "Not-Logged-In"
-                return stage
+                return stage, name
         except:
             stage = "Not-Logged-In"
-            return stage
+            return stage, name
 
     else:
         #body_text(name, f"Loading{iteration * '.'}", 4, timing)
@@ -245,6 +245,7 @@ def login_check(name,name_check,timing):
                 time.sleep(1)
         time.sleep(1)
         clear_screen()
+        return "New-User", name
 
 
 def call_password_select(name):
